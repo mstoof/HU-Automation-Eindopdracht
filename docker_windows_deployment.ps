@@ -1,0 +1,16 @@
+# Run as Administrator
+
+# Install Chocolatey
+Set-ExecutionPolicy Bypass -Scope Process -Force
+[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
+Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+
+# Install Docker with Chocolatey
+choco install docker-desktop -y
+
+# Start Docker service
+Start-Service com.docker.service
+
+# Pull and run a Docker container (example with a web server)
+docker pull nginx
+docker run -d -p 80:80 --name webserver nginx
