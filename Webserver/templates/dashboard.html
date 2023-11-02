@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>System Stats Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f4f4f4;
+        }
+        header {
+            background: #333;
+            color: #fff;
+            padding: 10px 20px;
+            text-align: center;
+        }
+        header h1, header h3 {
+            margin: 5px 0;
+        }
+        .chart-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            align-items: center;
+            padding: 20px;
+        }
+        .chart-box {
+            flex: 1;
+            min-width: 300px;
+            margin: 10px;
+            padding: 20px;
+            background: #fff;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        h3 {
+            color: whitesmoke;
+        }
+        h2 {
+            color: #333;
+        }
+        canvas {
+            width: 100% !important;
+            max-height: 500px;
+            max-width: 1000px;
+            height: auto !important;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h3>Maurice Stoof | Automation eindopdracht</h3>
+    <h1>System Statistics Dashboard</h1>
+</header>
+
+<div class="chart-container">
+    <section class="chart-box">
+        <h2>CPU Usage</h2>
+        <canvas id="cpuChart"></canvas>
+    </section>
+    <section class="chart-box">
+        <h2>Memory Usage</h2>
+        <canvas id="memoryChart"></canvas>
+    </section>
+    <section class="chart-box">
+        <h2>Disk Usage</h2>
+        <canvas id="diskChart"></canvas>
+    </section>
+</div>
+
+    <script>
+        const cpuCtx = document.getElementById('cpuChart').getContext('2d');
+        const memoryCtx = document.getElementById('memoryChart').getContext('2d');
+        const diskCtx = document.getElementById('diskChart').getContext('2d');
+
+        // Functie om een grafiek te creëren
+        function createChart(ctx, data, label) {
+            return new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.map(d => d.timestamp),
+                    datasets: [{
+                        label: label,
+                        data: data.map(d => d.value),
+                        fill: false,
+                        borderColor: 'rgb(75, 192, 192)',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            type: 'linear',
+                            min: 0,
+                            max: 100
+                        }
+                    }
+                }
+            });
+        }
+        function fetchStats(url, context, label) {
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) {
+                        // If the response status code is not OK, throw an error
+                throw new Error(`Network response was not ok, status: ${response.status}`);
+                 }
+                 return response.json();
+             })
+             .then(data => createChart(context, data, label))
+             .catch(error => {
+                 // Handle any errors that occurred during fetch or data processing
+                console.error('There has been a problem with your fetch operation:', error);
+                // Display a fallback message or handle the error visually in the UI
+                document.getElementById(context.canvas.id).parentElement.innerHTML = `<p>Error loading ${label}: ${error.message}</p>`;
+             });
+        }
+
+        fetchStats('/stats/cpu', cpuCtx, 'CPU Usage (%)');
+        fetchStats('/stats/memory', memoryCtx, 'Memory Usage (%)');
+        fetchStats('/stats/disk', diskCtx, 'Disk Usage (%)');
+        // // Haal CPU-statistieken op en creëer de grafiek
+        // fetch('/stats/cpu')
+        //     .then(response => response.json())
+        //     .then(data => createChart(cpuCtx, data, 'CPU Usage (%)'));
+        //
+        // // Haal geheugenstatistieken op en creëer de grafiek
+        // fetch('/stats/memory')
+        //     .then(response => response.json())
+        //     .then(data => createChart(memoryCtx, data, 'Memory Usage (%)'));
+        //
+        // // Haal disk informatie op en creeer de grafiek
+        // fetch('/stats/disk')
+        //     .then(response => response.json())
+        //     .then(data => createChart(diskCtx, data, 'Disk Usage (%)'))
+    </script>
+
+</body>
+</html>
